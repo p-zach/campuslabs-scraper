@@ -13,7 +13,7 @@ class OrganizationList(tk.Frame):
 
         # create window layout
         self.vsb = tk.Scrollbar(self, orient="vertical")
-        self.text = tk.Text(self, width=40, height=20, 
+        self.text = tk.Text(self, width=70, height=40, 
                             yscrollcommand=self.vsb.set)
         self.vsb.config(command=self.text.yview)
         self.vsb.pack(side="right", fill="y")
@@ -21,12 +21,25 @@ class OrganizationList(tk.Frame):
 
         self.loop = asyncio.get_event_loop()
 
+        self.values = {}
+
         # get name and contact for each organization
         for name, contact in self.get_links_info(links):
             # create checkboxes for the organizations
-            cb = tk.Checkbutton(self, text=f"{name}: {contact}")
+            val = tk.BooleanVar()
+            cb = tk.Checkbutton(self, text=f"{name}: {contact}", variable=val)
+            self.values[name] = (val, contact)
             self.text.window_create("end", window=cb)
             self.text.insert("end", "\n") # to force one checkbox per line
+
+        button = tk.Button(self, text="Export", command=self.export_selected_orgs)
+        button.pack(side=tk.BOTTOM)
+    
+    def export_selected_orgs(self):
+        self.text.delete(1.0, tk.END)
+        for org, details in self.values.items():
+            if details[0].get():
+                self.text.insert(tk.END, f"{org},{details[1]}\n")
 
     def get_links_info(self, links):
         """Get the name and contact information for the CampusLabs organizations linked to by the provided list.

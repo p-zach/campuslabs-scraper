@@ -11,11 +11,15 @@ def get_org_links(url):
     opts = Options()
     opts.headless = True
     driver = Chrome(options=opts)
+    print(f"Fetching {url}...", end=" ")
     driver.get(url)
+    print("fetched.")
 
     delay = 1
 
     button_xpath = '/html/body/div[2]/div/div/div/div/div[2]/div[3]/div/div[2]/div[2]/button'
+
+    print("Loading all organizations (this might take a while)...", end=" ")
 
     try:
         load_more = driver.find_element(By.XPATH, button_xpath)
@@ -30,10 +34,14 @@ def get_org_links(url):
     except NoSuchElementException:
         pass
 
+    print("loaded.")
+
     links = driver.find_elements(By.TAG_NAME, "a")
     links = [link.get_attribute("href") for link in links if "engage/organization/" in link.get_attribute("href")]
 
     driver.close()
+
+    print("Organization links found and Selenium web driver closed.")
 
     return links
 
