@@ -61,7 +61,7 @@ class OrganizationList(tk.Frame):
             # get the either the organization email, the primary contact email, or the contact page link
             contact = None
             try:
-                contact = data['email'] if data['email'] else f"{data['primaryContact']['primaryEmailAddress']} (primary contact)"
+                contact = data['email'] if data['email'] else f"{data['primaryContact']['primaryEmailAddress']}"
             except KeyError: pass
             except TypeError: pass
             if contact is None:

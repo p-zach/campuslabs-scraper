@@ -1,3 +1,4 @@
+from ast import arg
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -6,6 +7,7 @@ from selenium.webdriver.support import expected_conditions
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 import tkinter as tk
 from orglist import OrganizationList
+import argparse
 
 def get_org_links(url):
     opts = Options()
@@ -46,9 +48,11 @@ def get_org_links(url):
     return links
 
 def main():
-    URL = "https://gatech.campuslabs.com/engage/organizations?query=eco"
+    parser = argparse.ArgumentParser(description="Select CampusLabs organizations to export.")
+    parser.add_argument('url', metavar="U", type=str, help="the URL of the CampusLabs organization page.")
+    args = parser.parse_args()
 
-    links = get_org_links(URL)
+    links = get_org_links(args.url)
 
     root = tk.Tk()
     OrganizationList(root, links).pack(side="top", fill="both", expand=True)
