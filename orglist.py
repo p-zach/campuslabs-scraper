@@ -23,12 +23,13 @@ class OrganizationList(tk.Frame):
 
         self.values = {}
 
-        # get name and contact for each organization
-        for name, contact in self.get_links_info(links):
+        # get name, desc, and contact for each organization
+        for name, desc, contact in self.get_links_info(links):
             # create checkboxes for the organizations
             val = tk.BooleanVar()
-            cb = tk.Checkbutton(self, text=f"{name}: {contact}", variable=val)
+            cb = tk.Checkbutton(self, text=f"{name}: {desc}", variable=val)
             self.values[name] = (val, contact)
+            self.text.insert("end", "\t")
             self.text.window_create("end", window=cb)
             self.text.insert("end", "\n") # to force one checkbox per line
 
@@ -39,7 +40,7 @@ class OrganizationList(tk.Frame):
         self.text.delete(1.0, tk.END)
         for org, details in self.values.items():
             if details[0].get():
-                self.text.insert(tk.END, f"{org},{details[1]}\n")
+                self.text.insert(tk.END, f"{org},{details[2]}\n")
 
     def get_links_info(self, links):
         """Get the name and contact information for the CampusLabs organizations linked to by the provided list.
@@ -48,7 +49,7 @@ class OrganizationList(tk.Frame):
             links (list): the list of URLs to the organizations.
 
         Yields:
-            tuple: (name of organization, contact info for organization)
+            tuple: (name of organization, description, contact info for organization)
         """
         # process organization details as they are retrieved from online
         for org_details in asyncio.as_completed([self.get_org_details(link) for link in links]):
@@ -58,7 +59,17 @@ class OrganizationList(tk.Frame):
             data = data['preFetchedData']['organization']
             # get the organization name
             name = data['name']
-            # get the either the organization email, the primary contact email, or the contact page link
+            # get the organization description
+            desc = data['summary'] if 'summary' in data else None
+            # if a summary wasn't provided, get the whole description
+            if desc is None:
+                desc = data['description'] if data['description'] is not None else ""
+                # remove HTML tags
+                desc = desc.replace("<p>", "").replace("</p>", "")
+                # only include first sentence of description
+                if desc.find(".") != -1:
+                    desc = desc[:desc.find(".")+1]
+            # get either the organization email, the primary contact email, or the contact page link
             contact = None
             try:
                 contact = data['email'] if data['email'] else f"{data['primaryContact']['primaryEmailAddress']}"
@@ -67,8 +78,8 @@ class OrganizationList(tk.Frame):
             if contact is None:
                 contact = link + "/contact"
 
-            # return name and contact info for the current organization
-            yield name, contact
+            # return name, description, and contact info for the current organization
+            yield name, desc, contact
 
     async def get_org_details(self, link):
         """Gets the CampusLabs organization details from a link to a CampusLabs organization.
